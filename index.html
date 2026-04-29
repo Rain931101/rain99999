@@ -1,34 +1,46 @@
-<script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>我的 Web3 網頁</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body>
+    <h1>智慧合約互動</h1>
+    <button onclick="connect()">連接 MetaMask</button>
+    <p id="status">狀態：尚未連線</p>
 
-<script>
-let contract;
-let signer;
+    <script>
+        let contract;
+        let signer;
 
-async function connect() {
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
+        async function connect() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    // 請求帳號授權
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
 
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    signer = provider.getSigner();
+                    const address = "0x你的實際合約地址"; // 這裡要改！
+                    const abi = [
+                        "function setValue(uint256 _value)",
+                        "function getValue() view returns (uint256)"
+                    ];
 
-    const address = "👉你的合約地址";
-    const abi = [
-        "function setValue(uint _value)",
-        "function getValue() view returns (uint)"
-    ];
-
-    contract = new ethers.Contract(address, abi, signer);
-
-    alert("已連接 MetaMask");
-}
-
-async function setValue() {
-    const val = document.getElementById("input").value;
-    await contract.setValue(val);
-    alert("寫入成功");
-}
-
-async function getValue() {
-    const val = await contract.getValue();
-    document.getElementById("result").innerText = val;
-}
-</script>
+                    contract = new ethers.Contract(address, abi, signer);
+                    
+                    const userAddress = await signer.getAddress();
+                    document.getElementById('status').innerText = "已連線至: " + userAddress;
+                    alert("錢包連線成功！");
+                } catch (error) {
+                    console.error(error);
+                    alert("連線失敗：" + error.message);
+                }
+            } else {
+                alert("請安裝 MetaMask 擴充功能！");
+            }
+        }
+    </script>
+</body>
+</html>
