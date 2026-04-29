@@ -1,45 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>我的 Web3 網頁</title>
+    <title>Web3 互動練習</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 </head>
 <body>
-    <h1>智慧合約互動</h1>
-    <button onclick="connect()">連接 MetaMask</button>
-    <p id="status">狀態：尚未連線</p>
+    <h1>我的第一個 Web3 應用</h1>
+    
+    <button onclick="connect()">1. 連接 MetaMask</button>
+    <p id="wallet-address">錢包地址：尚未連線</p>
+
+    <hr>
+
+    <div>
+        <input type="number" id="newValue" placeholder="輸入數字">
+        <button onclick="setContractValue()">寫入數值 (setValue)</button>
+    </div>
+    <br>
+    <div>
+        <button onclick="getContractValue()">讀取數值 (getValue)</button>
+        <p id="display-value">目前合約數值：-</p>
+    </div>
 
     <script>
         let contract;
         let signer;
+        const contractAddress = "你的合約地址"; // 這裡請貼上你在 Remix 部署後的地址
+        const abi = [
+            "function setValue(uint256 _value)",
+            "function getValue() view returns (uint256)"
+        ];
 
         async function connect() {
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    // 請求帳號授權
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    
-                    const provider = new ethers.providers.Web3Provider(window.ethereum);
-                    signer = provider.getSigner();
-
-                    const address = "0x你的實際合約地址"; // 這裡要改！
-                    const abi = [
-                        "function setValue(uint256 _value)",
-                        "function getValue() view returns (uint256)"
-                    ];
-
-                    contract = new ethers.Contract(address, abi, signer);
-                    
-                    const userAddress = await signer.getAddress();
-                    document.getElementById('status').innerText = "已連線至: " + userAddress;
-                    alert("錢包連線成功！");
-                } catch (error) {
-                    console.error(error);
-                    alert("連線失敗：" + error.message);
-                }
+            if (window.ethereum) {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                const addr = await signer.getAddress();
+                document.getElementById('wallet-address').innerText = "錢包地址：" + addr;
+                contract = new ethers.Contract(contractAddress, abi, signer);
+                alert("連線成功！");
             } else {
-                alert("請安裝 MetaMask 擴充功能！");
+                alert("請安裝 MetaMask");
             }
+        }
+
+        async function setContractValue() {
+            const val = document.getElementById('newValue').value;
+            const tx = await contract.setValue(val);
+            await tx.wait(); // 等待交易打包完成
+            alert("寫入成功！");
+        }
+
+        async function getContractValue() {
+            const val = await contract.getValue();
+            document.getElementById('display-value').innerText = "目前合約數值：" + val;
         }
     </script>
 </body>
