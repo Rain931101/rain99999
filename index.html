@@ -1,0 +1,34 @@
+<script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+
+<script>
+let contract;
+let signer;
+
+async function connect() {
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
+
+    const address = "👉你的合約地址";
+    const abi = [
+        "function setValue(uint _value)",
+        "function getValue() view returns (uint)"
+    ];
+
+    contract = new ethers.Contract(address, abi, signer);
+
+    alert("已連接 MetaMask");
+}
+
+async function setValue() {
+    const val = document.getElementById("input").value;
+    await contract.setValue(val);
+    alert("寫入成功");
+}
+
+async function getValue() {
+    const val = await contract.getValue();
+    document.getElementById("result").innerText = val;
+}
+</script>
