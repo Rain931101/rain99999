@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
-# 學號：
-# 姓名：
+# 學號：12173224
+# 姓名:劉泳頡
 # 誠信聲明：本人同意並遵守期末實作考試之學術誠信規範，保證本程式碼完全由本人獨立實作完成，絕無抄襲或代寫等舞弊行為。
 # 簽名：____________________
 """
@@ -39,7 +39,7 @@ RAW_DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 os.makedirs(RAW_DATA_DIR, exist_ok=True)
 
 # ==== 2. 連線與個人學號參數設定 ====
-STUDENT_ID = "" #請輸入學號
+STUDENT_ID = "劉泳頡" #請輸入學號
 ES_HOST = "http://localhost:9200"
 
 DB_HOST = "localhost"
@@ -70,7 +70,7 @@ def download_and_parse_xml(url, filename):
 
             # ------ CODE BEGIN ZONE 0 ------
             # 【題目三 - 1：ZONE 0】
-            r = requests.get(url, )
+            r = requests.get(url,timeout=10)
             
 
 
@@ -108,15 +108,15 @@ def parse_vd_info(xml):
         # 【題目三 - 2：ZONE 1】
         
         vd_info.update({"SubAuthority": get_text(VD.getElementsByTagName("SubAuthority")[0]) if VD.getElementsByTagName("SubAuthority") else ""})
-        vd_info.update({"BiDirectional": })
-        vd_info.update({"VDType": })
-        vd_info.update({"LocationType": })
-        vd_info.update({"DetectionType": })
-        vd_info.update({"PositionLon": })
-        vd_info.update({"PositionLat": })
-        vd_info.update({"RoadID": })
-        vd_info.update({"RoadName": })
-        vd_info.update({"RoadClass": })
+        vd_info.update({"BiDirectional": get_text(VD.getElementsByTagName("BiDirectional")[0]) if VD.getElementsByTagName("BiDirectional") else ""})
+        vd_info.update({"VDType": get_text(VD.getElementsByTagName("VDType")[0]) if VD.getElementsByTagName("VDType") else ""})
+        vd_info.update({"LocationType": get_text(VD.getElementsByTagName("LocationType")[0]) if VD.getElementsByTagName("LocationType") else ""})
+        vd_info.update({"DetectionType": get_text(VD.getElementsByTagName("DetectionType")[0]) if VD.getElementsByTagName("DetectionType") else ""})
+        vd_info.update({"PositionLon": get_text(VD.getElementsByTagName("PositionLon")[0]) if VD.getElementsByTagName("PositionLon") else ""})
+        vd_info.update({"PositionLat": get_text(VD.getElementsByTagName("PositionLat")[0]) if VD.getElementsByTagName("PositionLat") else ""})
+        vd_info.update({"RoadID": get_text(VD.getElementsByTagName("RoadID")[0]) if VD.getElementsByTagName("RoadID") else ""})
+        vd_info.update({"RoadName": get_text(VD.getElementsByTagName("RoadName")[0]) if VD.getElementsByTagName("RoadName") else ""})
+        vd_info.update({"RoadClass": get_text(VD.getElementsByTagName("RoadClass")[0]) if VD.getElementsByTagName("RoadClass") else ""})
 
 
 
@@ -147,11 +147,11 @@ def parse_vd_data(xml):
         # ------ CODE BEGIN ZONE 2-1 ------
         # 【題目三 - 3：ZONE 2-1】
         vd_data.update({"VDID": get_text(VD.getElementsByTagName("VDID")[0])})
-        vd_data.update({"LinkID": })
-        vd_data.update({"LaneID": })
-        vd_data.update({"LaneType": })
-        vd_data.update({"Speed": })
-        vd_data.update({"Occupancy": })
+        vd_data.update({"LinkID": get_text(VD.getElementsByTagName("LinkID")[0]) if VD.getElementsByTagName("LinkID") else ""})
+        vd_data.update({"LaneID": get_text(VD.getElementsByTagName("LaneID")[0]) if VD.getElementsByTagName("LaneID") else ""})
+        vd_data.update({"LaneType": get_text(VD.getElementsByTagName("LaneType")[0]) if VD.getElementsByTagName("LaneType") else ""})
+        vd_data.update({"Speed": get_text(VD.getElementsByTagName("Speed")[0]) if VD.getElementsByTagName("Speed") else "0"})
+        vd_data.update({"Occupancy": get_text(VD.getElementsByTagName("Occupancy")[0]) if VD.getElementsByTagName("Occupancy") else "0"})
 
 
 
@@ -176,13 +176,13 @@ def parse_vd_data(xml):
             occ = float(vd_data["Occupancy"])
             vol = float(vd_data["Volume"])
         except ValueError:
-            
+            logging.warning("資料格式錯誤")
             
         if :
-            logging.warning()
+            logging.warning(f"無效資料:{vd_data['VDID']}")
             continue
         if :
-            logging.warning()
+            logging.warning(f"超速異常:{vd_data['VDID']}")
             continue
 
 
@@ -211,8 +211,8 @@ def transform(info, data):
 
         # ------ CODE BEGIN ZONE 3 ------
         # 【題目三 - 4：ZONE 3】
-        d["coords"] = 
-        d["creator_by"] = 
+        d["coords"] = f"{d['PositionLat']},{['PositionLon']}"
+        d["creator_by"] = "1142DE_VD_" + 12173224_ID
 
 
 
@@ -260,14 +260,14 @@ def insertData(data):
             "_index": es_index,
             "_id": d["VDID"] + "_" + STUDENT_ID,
             "_source": {
-                "vd_id": ,
-                "road_name": ,
-                "speed": ,
-                "occupancy": ,
-                "volume": ,
-                "volume_adjusted": ,
-                "location": ,
-                "updated_at": 
+                "vd_id": d['VDID'],
+                "road_name": d['RoadName'],
+                "speed": int(float(d["Speed"])),
+                "occupancy": int(float(d["occupancy"])),
+                "volume": int(float(d["volume"])),
+                "volume_adjusted": int(float(d["volume_adjusted"])),
+                "location": {"lat": lat, "lon": lon},
+                "updated_at": d["UpdateTime"]
             }
         })
 
